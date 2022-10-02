@@ -1,0 +1,13 @@
+/.idea
+
+### Gradle ###
+.gradle
+build
+local.properties
+
+### Java ###
+log/
+*.log
+
+### macOS ###
+.DS_Store
