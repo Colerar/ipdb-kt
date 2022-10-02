@@ -81,7 +81,7 @@ publishing {
             pom {
                 name.set("ipdb-kt")
                 description.set("An IPDB parser for Kotlin")
-                url.set("https://github.com/Sorapointa/Sorapointa")
+                url.set("https://github.com/Colerar/ipdb-kt")
 
                 licenses {
                     license {
