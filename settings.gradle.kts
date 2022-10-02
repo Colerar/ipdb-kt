@@ -1,2 +1,2 @@
-rootProject.name = "ipdb-kt"
+rootProject.name = "ipdb"
 include("ipdb-core")

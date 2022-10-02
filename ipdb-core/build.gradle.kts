@@ -7,6 +7,9 @@ plugins {
     signing
 }
 
+group = "moe.sdl.ipdb"
+version = "0.1.0"
+
 repositories {
     mavenCentral()
 }
@@ -53,16 +56,16 @@ fun Project.getRootProjectLocalProps(): Map<String, String> {
 val secretPropsFile: File = project.rootProject.file("local.properties")
 if (secretPropsFile.exists()) {
     val props = getRootProjectLocalProps()
-    props.forEach { t, u -> ext[t] = u }
+    props.forEach { (t, u) -> extra[t] = u }
 } else {
-    ext["signing.keyId"] = System.getenv("SIGNING_KEY_ID")
-    ext["signing.password"] = System.getenv("SIGNING_PASSWORD")
-    ext["signing.secretKeyRingFile"] = System.getenv("SIGNING_SECRET_KEY_RING_FILE")
-    ext["ossrhUsername"] = System.getenv("OSSRH_USERNAME")
-    ext["ossrhPassword"] = System.getenv("OSSRH_PASSWORD")
+    extra["signing.keyId"] = System.getenv("SIGNING_KEY_ID")
+    extra["signing.password"] = System.getenv("SIGNING_PASSWORD")
+    extra["signing.secretKeyRingFile"] = System.getenv("SIGNING_SECRET_KEY_RING_FILE")
+    extra["ossrhUsername"] = System.getenv("OSSRH_USERNAME")
+    extra["ossrhPassword"] = System.getenv("OSSRH_PASSWORD")
 }
 
-fun Project.getExtraString(name: String) = kotlin.runCatching { ext[name]?.toString() }.getOrNull()
+fun Project.getExtraString(name: String) = kotlin.runCatching { extra[name]?.toString() }.getOrNull()
 
 publishing {
     publications {
