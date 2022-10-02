@@ -35,39 +35,39 @@ public data class FullInfo(
     val usageType: String
 ) {
     public companion object : PairParser<FullInfo> {
-    override fun parsePairs(data: List<Pair<String, String>>): FullInfo {
-        val map = data.toMap()
-        fun f(name: String) = map[name] ?: ""
-        return FullInfo(
-            countryName = f("country_name"),
-            regionName = f("region_name"),
-            cityName = f("city_name"),
-            districtName = f("district_name"),
-            ownerDomain = f("owner_domain"),
-            ispDomain = f("isp_domain"),
-            latitude = f("latitude"),
-            longitude = f("longitude"),
-            timezone = f("timezone"),
-            utcOffset = f("utc_offset"),
-            chinaRegionCode = f("china_region_code"),
-            chinaCityCode = f("china_city_code"),
-            chinaAdminCode = f("china_admin_code"),
-            iddCode = f("idd_code"),
-            countryCode = f("country_code"),
-            continentCode = f("continent_code"),
-            idc = f("idc"),
-            baseStation = f("base_station"),
-            countryCode3 = f("country_code3"),
-            europeanUnion = f("european_union"),
-            currencyCode = f("currency_code"),
-            currencyName = f("currency_name"),
-            anyCast = f("currency_anycast"),
-            line = f("currency_line"),
-            route = f("currency_route"),
-            asn = f("currency_asn"),
-            areaCode = f("area_code"),
-            usageType = f("usage_type")
-        )
-    }
+        override fun parsePairs(data: List<Pair<String, String>>): FullInfo {
+            val map = data.toMap()
+            fun f(name: String) = map[name] ?: ""
+            return FullInfo(
+                countryName = f("country_name"),
+                regionName = f("region_name"),
+                cityName = f("city_name"),
+                districtName = f("district_name"),
+                ownerDomain = f("owner_domain"),
+                ispDomain = f("isp_domain"),
+                latitude = f("latitude"),
+                longitude = f("longitude"),
+                timezone = f("timezone"),
+                utcOffset = f("utc_offset"),
+                chinaRegionCode = f("china_region_code"),
+                chinaCityCode = f("china_city_code"),
+                chinaAdminCode = f("china_admin_code"),
+                iddCode = f("idd_code"),
+                countryCode = f("country_code"),
+                continentCode = f("continent_code"),
+                idc = f("idc"),
+                baseStation = f("base_station"),
+                countryCode3 = f("country_code3"),
+                europeanUnion = f("european_union"),
+                currencyCode = f("currency_code"),
+                currencyName = f("currency_name"),
+                anyCast = f("anycast"),
+                line = f("line"),
+                route = f("route"),
+                asn = f("asn"),
+                areaCode = f("area_code"),
+                usageType = f("usage_type")
+            )
+        }
     }
 }
