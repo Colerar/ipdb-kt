@@ -1,6 +1,6 @@
 # <h1 align="center">ipdb-kt</h1>
 
-<center><h3>An IPDB parser for Kotlin</h3></center>
+<h3 align="center">An IPDB parser for Kotlin</h3>
 
 <!--Badges-->
 
