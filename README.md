@@ -38,7 +38,7 @@ dependencies {
 ## Usage
 
 ```kotlin
-public fun main(): Unit = runBlocking {
+fun main(): Unit = runBlocking {
     val reader = Reader(File("/path/to/file.ipdb"))
     println(reader.findThenParse(FullInfo, IPAddressString("1.1.1.1").toAddress(), "EN"))
 }
