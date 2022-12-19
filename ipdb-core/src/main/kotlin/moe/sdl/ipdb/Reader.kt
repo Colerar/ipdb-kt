@@ -83,10 +83,6 @@ public class Reader internal constructor(
             "IPDB file parse error, resolved($resolved) > file length ($dataSize)"
         }
         val size = data.slice().getShort(resolved).toUShort().toInt()
-        println(dataSize)
-        println(resolved)
-        println(size)
-
         check(dataSize > resolved + size) {
             "IPDB file parse error, size($size) > file length ($dataSize)"
         }
