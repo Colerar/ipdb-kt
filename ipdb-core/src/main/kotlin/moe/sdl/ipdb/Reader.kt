@@ -1,65 +1,61 @@
 package moe.sdl.ipdb
 
 import inet.ipaddr.IPAddress
-import inet.ipaddr.IPAddressString
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import moe.sdl.ipdb.exceptions.NoSuchLanguageException
 import moe.sdl.ipdb.parser.OrderParser
 import moe.sdl.ipdb.parser.PairParser
-import moe.sdl.ipdb.parser.builtins.FullInfo
-import java.io.DataInputStream
 import java.io.File
-import java.io.InputStream
 import java.nio.ByteBuffer
-
-public suspend inline fun Reader(
-    file: File,
-    dispatcher: CoroutineDispatcher = Dispatchers.IO
-): Reader = Reader(file.inputStream(), dispatcher)
+import java.nio.channels.FileChannel
+import java.nio.file.Files
+import java.nio.file.StandardOpenOption
 
 public suspend fun Reader(
-    inputStream: InputStream,
+    file: File,
+    dispatcher: CoroutineDispatcher = Dispatchers.IO
+): Reader = withContext(Dispatchers.IO) {
+    val channel = Files.newByteChannel(file.toPath(), StandardOpenOption.READ) as FileChannel
+    channel.use {
+        val mapped = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size())
+        Reader(mapped, dispatcher)
+    }
+}
+
+public suspend inline fun Reader(
+    data: ByteArray,
+    dispatcher: CoroutineDispatcher = Dispatchers.IO
+): Reader = Reader(ByteBuffer.wrap(data), dispatcher)
+
+public suspend fun Reader(
+    data: ByteBuffer,
     dispatcher: CoroutineDispatcher = Dispatchers.IO
 ): Reader = withContext(dispatcher) {
-    DataInputStream(inputStream.buffered()).use {
-        val metaLen = it.readInt()
-        val meta = run {
-            val meta = ByteArray(metaLen)
-            it.readFully(meta)
-            Json.decodeFromString<Metadata>(meta.decodeToString())
-        }
-        val data = it.readAllBytes()
-        var node = 0L
-        for (i in 0 until 96) {
-            if (node >= meta.nodeCount) {
-                break
-            }
-            fun setNode(offset: Long) {
-                val node0 = data.sliceArray(offset.toInt() until (offset + 4).toInt())
-                node = ByteBuffer.wrap(node0).int.toUInt().toLong()
-            }
-            setNode(
-                if (i >= 80) {
-                    node * 8L + 1L * 4L
-                } else {
-                    node * 8L
-                }
-            )
-        }
-        Reader(meta, data, node)
+    val metaLen = data.int
+    val meta = run {
+        val meta = ByteArray(metaLen)
+        data.get(meta, 0, metaLen)
+        Json.decodeFromString(Metadata.serializer(), meta.decodeToString())
     }
+    var node = 0L
+    for (i in 0 until 96) {
+        if (node >= meta.nodeCount) {
+            break
+        }
+        val offset = if (i >= 80) node * 8 + 1 * 4 else node * 8
+        node = data.slice().getInt(offset.toInt()).toUInt().toLong()
+    }
+    Reader(meta, data, node)
 }
 
 public class Reader internal constructor(
     public val metadata: Metadata,
-    private val data: ByteArray,
+    private val data: ByteBuffer,
     private val v4offset: Long
 ) {
     public val isIpv4: Boolean
@@ -71,7 +67,7 @@ public class Reader internal constructor(
     /**
      * The IP version of this IPDB [Reader], return null if unknown
      *
-     * @see IPVersion
+     * @see IPAddress.IPVersion
      */
     public val ipVersion: IPAddress.IPVersion?
         get() = when {
@@ -82,21 +78,26 @@ public class Reader internal constructor(
 
     private fun resolve(node: Long): String {
         val resolved = (node - metadata.nodeCount + metadata.nodeCount * 8).toInt()
-        require(resolved < data.size) {
-            "IPDB file parse error, resolved($resolved) > file length (${data.size})"
+        val dataSize = data.slice().capacity()
+        require(resolved < dataSize) {
+            "IPDB file parse error, resolved($resolved) > file length ($dataSize)"
         }
-        val size = ByteBuffer.wrap(
-            byteArrayOf(0, 0, data[resolved], data[resolved + 1])
-        ).int + resolved + 2
-        check(data.size > size) {
-            "IPDB file parse error, size($size) > file length (${data.size})"
+        val size = data.slice().getShort(resolved).toUShort().toInt()
+        println(dataSize)
+        println(resolved)
+        println(size)
+
+        check(dataSize > resolved + size) {
+            "IPDB file parse error, size($size) > file length ($dataSize)"
         }
-        return data.sliceArray(resolved + 2 until size).decodeToString()
+        val bytes = ByteArray(size)
+        data.slice().position(resolved + 2).get(bytes, 0, size)
+        return bytes.decodeToString()
     }
 
     private fun readNode(node: Long, index: Long): Long {
         val off = (node * 8 + index * 4).toInt()
-        return ByteBuffer.wrap(data.sliceArray(off..off + 4)).int.toLong()
+        return data.slice().getInt(off).toUInt().toLong()
     }
 
     private fun findNode(binary: ByteArray): Long? {
